@@ -7,9 +7,10 @@ interface Props {
   messages: ChatMessage[];
   streamingMessage: ChatMessage | null;
   onRetry?: (id: string) => void;
+  loadingAssistantMessage:boolean
 }
 
-export function MessageList({ messages, streamingMessage, onRetry }: Props) {
+export function MessageList({ messages, streamingMessage, onRetry, loadingAssistantMessage }: Props) {
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -28,13 +29,14 @@ export function MessageList({ messages, streamingMessage, onRetry }: Props) {
                 ? () => onRetry(m.id)
                 : undefined
             }
+            loadingAssistantMessage={loadingAssistantMessage}
           />
         ))}
         {streamingMessage && (
           <MessageBubble
             message={streamingMessage}
             thinkingActive
-            thinkingSteps={streamingMessage.thinking}
+            loadingAssistantMessage={loadingAssistantMessage}
           />
         )}
         <div ref={endRef} />

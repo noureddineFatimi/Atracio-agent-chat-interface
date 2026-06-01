@@ -1,9 +1,11 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import {
+  Alert,
   Box,
   Button,
   Checkbox,
+  Fade,
   FormControlLabel,
   IconButton,
   InputAdornment,
@@ -28,16 +30,24 @@ export function LoginPage() {
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(true);
   const [showPw, setShowPw] = useState(false);
-  const [loading, setLoading] = useState<"login" | "demo" | null>(null);
+  const [loading, setLoading] = useState<"login" | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const submit = async (e: FormEvent, demo = false) => {
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
-    setLoading(demo ? "demo" : "login");
-    await atracioAuthClient.login(
-      demo ? "demo@atracio.com" : email,
-      demo ? "demo" : password,
-    );
-    navigate({ to: "/chat" });
+    setLoading("login");
+    setError(null);
+    try {
+      const auth_result = await atracioAuthClient.login(
+      email,
+      password,
+      remember
+      );
+      auth_result.success ? navigate({ to: "/chat" }) : setError(auth_result.errorMessage);
+    } catch (error) {
+      setError("An error occured, please try again");
+    }
+    setLoading(null);
   };
 
   return (
@@ -84,6 +94,7 @@ export function LoginPage() {
           },
         }}
       >
+        
         <Stack spacing={3}>
           <Stack spacing={1.5} sx={{ alignItems: "center", textAlign: "center" }}>
             <Box
@@ -99,6 +110,7 @@ export function LoginPage() {
                 boxShadow: `0 12px 32px ${alpha(theme.palette.primary.main, 0.4)}`,
               }}
             >
+              
               <AutoAwesomeIcon sx={{ fontSize: 28 }} />
             </Box>
             <Typography variant="h5" sx={{ fontWeight: 700 }}>
@@ -108,12 +120,15 @@ export function LoginPage() {
               AI-powered ERP and Logistics Assistant
             </Typography>
           </Stack>
-
-          <form onSubmit={(e) => submit(e, false)}>
+          <form onSubmit={(e) => submit(e)}>
+            {error && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {error}
+              </Alert>
+            )}
             <Stack spacing={2}>
               <TextField
-                label="Work email"
-                type="email"
+                label="Username or email"
                 fullWidth
                 required
                 value={email}
@@ -175,16 +190,6 @@ export function LoginPage() {
                     <Typography variant="body2">Remember me</Typography>
                   }
                 />
-                <Typography
-                  variant="body2"
-                  sx={{
-                    color: "primary.main",
-                    cursor: "pointer",
-                    fontWeight: 500,
-                  }}
-                >
-                  Forgot password?
-                </Typography>
               </Stack>
               <Button
                 type="submit"
@@ -195,15 +200,6 @@ export function LoginPage() {
               >
                 {loading === "login" ? "Signing in…" : "Sign in"}
               </Button>
-              <Button
-                type="button"
-                size="large"
-                variant="outlined"
-                disabled={loading !== null}
-                onClick={(e) => submit(e, true)}
-              >
-                {loading === "demo" ? "Loading demo…" : "Try demo account"}
-              </Button>
             </Stack>
           </form>
 
@@ -212,7 +208,7 @@ export function LoginPage() {
             color="text.secondary"
             sx={{ textAlign: "center" }}
           >
-            Protected by Atracio Identity · v1.0
+            Protected by Atracio Agent Identity · v1.0
           </Typography>
         </Stack>
       </Paper>

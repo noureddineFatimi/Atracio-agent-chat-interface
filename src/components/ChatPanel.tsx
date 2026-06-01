@@ -1,6 +1,7 @@
 import { useState, type KeyboardEvent } from "react";
 import {
   Box,
+  CircularProgress,
   IconButton,
   Stack,
   TextField,
@@ -22,7 +23,55 @@ interface Props {
   onSend: (text: string) => void;
   onClear: () => void;
   onRetry: (id: string) => void;
+  loadingAssistantMessage: boolean;
 }
+/* const generateConversationsList = (
+    conversationResponse: ConversationResponse
+  ): Conversation[] => {
+    return Object.entries(conversationResponse)
+      .map(([id, items]) => {
+        // 1. Extraire les métadonnées (items sans role)
+        const createdAtRaw = items.find((m) => m.created_at)?.created_at;
+        const updatedAtRaw = items.find((m) => m.updated_at)?.updated_at;
+
+        const updatedAt = updatedAtRaw
+          ? new Date(updatedAtRaw).getTime()
+          : createdAtRaw
+          ? new Date(createdAtRaw).getTime()
+          : Date.now();
+
+        // 2. Filtrer : garder uniquement les messages visibles
+        //    - role user ou assistant
+        //    - content non-null (exclut les tool_calls purs)
+        //    - sans tool_calls (exclut les requêtes d'outil)
+        //    - rôle "tool" exclu (résultats d'outil internes)
+        const chatMessages: ChatMessage[] = items
+          .filter(
+            (m): m is ChatMessageResponse & { role: "user" | "assistant"; content: string } =>
+              (m.role === "user" || m.role === "assistant") &&
+              m.content != null &&
+              m.content.trim() !== "" &&
+              !m.tool_calls
+          )
+          .map((m, index) => ({
+            id: `${id}-${index}`,
+            role: m.role as MessageRole,
+            content: m.content,
+          }));
+
+        // 3. Titre = premier message user, tronqué à 50 caractères
+        const firstUserMessage = chatMessages.find((m) => m.role === "user");
+        const title = firstUserMessage
+          ? firstUserMessage.content.length > 50
+            ? firstUserMessage.content.slice(0, 47) + "…"
+            : firstUserMessage.content
+          : "New conversation";
+
+        return { id, title, updatedAt, messages: chatMessages };
+      })
+      // 4. Tri : plus récente en premier
+      .sort((a, b) => b.updatedAt - a.updatedAt);
+  }; */
 
 export function ChatPanel({
   messages,
@@ -31,6 +80,7 @@ export function ChatPanel({
   onSend,
   onClear,
   onRetry,
+  loadingAssistantMessage
 }: Props) {
   const [input, setInput] = useState("");
   const theme = useTheme();
@@ -51,6 +101,7 @@ export function ChatPanel({
 
   return (
     <Box sx={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
+      
       {messages.length === 0 && !streamingMessage ? (
         <Box sx={{ flex: 1, display: "flex" }}>
           <EmptyState onPick={(t) => onSend(t)} />
@@ -60,6 +111,7 @@ export function ChatPanel({
           messages={messages}
           streamingMessage={streamingMessage}
           onRetry={onRetry}
+          loadingAssistantMessage={loadingAssistantMessage}
         />
       )}
 
@@ -71,6 +123,7 @@ export function ChatPanel({
           py: 2,
         }}
       >
+        
         <Box sx={{ maxWidth: 900, mx: "auto" }}>
           <Box
             sx={{
@@ -86,6 +139,7 @@ export function ChatPanel({
               "&:focus-within": { borderColor: "primary.main" },
             }}
           >
+            
             <TextField
               fullWidth
               multiline
@@ -108,6 +162,7 @@ export function ChatPanel({
                   </span>
                 </Tooltip>
               )}
+              
               <Tooltip title="Send">
                 <span>
                   <IconButton
@@ -126,9 +181,13 @@ export function ChatPanel({
                     <SendIcon fontSize="small" />
                   </IconButton>
                 </span>
+                
               </Tooltip>
+              {loadingAssistantMessage && <CircularProgress/>}
             </Stack>
+            
           </Box>
+          
           <Typography
             variant="caption"
             color="text.secondary"

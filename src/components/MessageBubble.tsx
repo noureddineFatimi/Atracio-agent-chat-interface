@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Avatar, Box, IconButton, Stack, Tooltip, Typography, alpha, useTheme } from "@mui/material";
+import { Avatar, Box, CircularProgress, IconButton, Stack, Tooltip, Typography, alpha, useTheme } from "@mui/material";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import CheckIcon from "@mui/icons-material/Check";
@@ -11,8 +11,8 @@ import { ThinkingBlock } from "./ThinkingBlock";
 interface Props {
   message: ChatMessage;
   thinkingActive?: boolean;
-  thinkingSteps?: ChatMessage["thinking"];
   onRetry?: () => void;
+  loadingAssistantMessage:boolean;
 }
 
 function renderContent(text: string) {
@@ -42,7 +42,7 @@ function renderContent(text: string) {
   });
 }
 
-export function MessageBubble({ message, thinkingActive, thinkingSteps, onRetry }: Props) {
+export function MessageBubble({ message, thinkingActive, onRetry, loadingAssistantMessage }: Props) {
   const theme = useTheme();
   const [copied, setCopied] = useState(false);
   const isUser = message.role === "user";
@@ -60,6 +60,7 @@ export function MessageBubble({ message, thinkingActive, thinkingSteps, onRetry 
       sx={{
         alignItems: "flex-start",
         flexDirection: isUser ? "row-reverse" : "row",
+        
         animation: "fadeIn 0.35s ease",
         "@keyframes fadeIn": {
           from: { opacity: 0, transform: "translateY(6px)" },
@@ -77,15 +78,13 @@ export function MessageBubble({ message, thinkingActive, thinkingSteps, onRetry 
       >
         {isUser ? <PersonIcon fontSize="small" /> : <AutoAwesomeIcon fontSize="small" />}
       </Avatar>
-      <Box sx={{ maxWidth: "min(760px, calc(100% - 60px))", flex: 1 }}>
-        {!isUser && thinkingSteps && thinkingSteps.length > 0 && (
-          <Box sx={{ mb: 1.5 }}>
-            <ThinkingBlock steps={thinkingSteps} active={!!thinkingActive} />
-          </Box>
-        )}
+      <Box sx={{ maxWidth: "min(760px, calc(100% - 60px))" }}>
+       
+          
         {message.content && (
           <Box
             sx={{
+              marginRight:"16px",
               display: "inline-block",
               maxWidth: "100%",
               px: 2,
@@ -97,7 +96,7 @@ export function MessageBubble({ message, thinkingActive, thinkingSteps, onRetry 
               boxShadow: isUser ? "none" : "0 1px 2px rgba(0,0,0,0.04)",
             }}
           >
-            {renderContent(message.content)}
+             { renderContent(message.content)}
           </Box>
         )}
         <Stack
@@ -109,12 +108,7 @@ export function MessageBubble({ message, thinkingActive, thinkingSteps, onRetry 
             justifyContent: isUser ? "flex-end" : "flex-start",
           }}
         >
-          <Typography variant="caption" color="text.secondary">
-            {new Date(message.timestamp).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </Typography>
+          
           {!isUser && message.content && (
             <>
               <Tooltip title={copied ? "Copied" : "Copy"}>
@@ -126,13 +120,7 @@ export function MessageBubble({ message, thinkingActive, thinkingSteps, onRetry 
                   )}
                 </IconButton>
               </Tooltip>
-              {onRetry && (
-                <Tooltip title="Retry">
-                  <IconButton size="small" onClick={onRetry}>
-                    <RefreshIcon sx={{ fontSize: 14 }} />
-                  </IconButton>
-                </Tooltip>
-              )}
+              
             </>
           )}
         </Stack>

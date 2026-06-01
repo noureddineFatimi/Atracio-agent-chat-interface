@@ -1,4 +1,7 @@
-import type { ChatMessage, ThinkingStep } from "@/types/chat";
+import type { ChatMessage, ConversationResponse, ThinkingStep } from "@/types/chat";
+import { CONFIG } from "@/config";
+import type { ChatResponse } from "@/types/chat";
+import { ChatError, UnauthorizedError } from "./exceptions";
 
 interface MockScenario {
   match: RegExp;
@@ -72,34 +75,44 @@ export interface StreamCallbacks {
 export const agentClient = {
   async sendChatMessage(
     userMessage: string,
-    cb: StreamCallbacks,
-  ): Promise<void> {
-    const scenario = scenarios.find((s) => s.match.test(userMessage)) ?? fallback;
-    const steps: ThinkingStep[] = scenario.steps.map((label, i) => ({
-      id: `s-${i}`,
-      label,
-      status: "pending",
-    }));
+    conversationId: string
+  ): Promise<ChatResponse> {
 
-    for (let i = 0; i < steps.length; i++) {
-      steps[i].status = "active";
-      cb.onThinking([...steps]);
-      await new Promise((r) => setTimeout(r, 650 + Math.random() * 400));
-      steps[i].status = "done";
-      cb.onThinking([...steps]);
-    }
+    const tenant = CONFIG.TENANT;
+    const bearerToken = localStorage.getItem("access.token");
 
-    await new Promise((r) => setTimeout(r, 300));
-    cb.onComplete({
-      id: `m-${Date.now()}`,
-      role: "assistant",
-      content: scenario.response,
-      timestamp: Date.now(),
-      thinking: steps,
-    });
+    const requestBody = {userMessage: userMessage, conversationId: conversationId, tenant: tenant, bearerToken: bearerToken}
+    try {
+      const response = await fetch(
+      CONFIG.ATRACIO_AGENT_BASE_URL +"/chat",
+          {
+            method: "POST",
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestBody)
+        });
+      const chatResponse: ChatResponse = await response.json();
+      return chatResponse;
+    } catch (error) {
+      throw new ChatError("An error occured, please try again !", 500);
+    }   
   },
 
-  async getConversationHistory(): Promise<ChatMessage[]> {
-    return [];
+  async getConversationHistory() {
+    try {
+      const response = await fetch(
+      CONFIG.ATRACIO_AGENT_BASE_URL +"/chat/conversations",
+          {
+            method: "GET",
+            headers: {
+              'Content-Type': 'application/json'
+            },
+        });
+      const conversationResponse: ConversationResponse = await response.json();
+      return conversationResponse;
+    } catch (error) {
+      throw new ChatError("An error occured, please try again !", 500);
+    }   
   },
 };

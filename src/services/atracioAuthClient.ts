@@ -1,33 +1,34 @@
+import { CONFIG } from "@/config";
 import type { AuthSession } from "@/types/auth";
+import { Unauthorized } from "@/types/unauthorized";
+import { useNavigate } from "@tanstack/react-router";
 
-const STORAGE_KEY = "atracio.session";
+const ACCESS_TOKEN_KEY = "access.token";
 
 export const atracioAuthClient = {
-  async login(email: string, _password: string): Promise<AuthSession> {
-    await new Promise((r) => setTimeout(r, 600));
-    const session: AuthSession = {
-      token: `mock-token-${Math.random().toString(36).slice(2)}`,
-      email: email || "demo@atracio.com",
-      tenant: "demo",
-    };
-    if (typeof window !== "undefined") {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+  async login(email: string, password: string, rememberMe: boolean) {
+    const crendentials = {email: email, password: password, rememberMe: rememberMe, loginTier: "internal"}
+    const response = await fetch(
+      "/api/auth/login",
+      {
+        method: "POST",
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(crendentials)
+    });
+    if(response.ok) {
+      const token: AuthSession = await response.json();
+      localStorage.setItem(ACCESS_TOKEN_KEY, token.accessToken);
+      return {success: true, errorMessage: "Authentified"};
+    } else {
+      if (response.status == 401) {
+        const errorMessage: Unauthorized = await response.json();
+        return {success: false, errorMessage: errorMessage.message};
+      } else {
+        return {success: false, errorMessage: "An error occurred, Please try again"};
+      }
     }
-    return session;
-  },
-  logout() {
-    if (typeof window !== "undefined") {
-      localStorage.removeItem(STORAGE_KEY);
-    }
-  },
-  getSession(): AuthSession | null {
-    if (typeof window === "undefined") return null;
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    try {
-      return JSON.parse(raw) as AuthSession;
-    } catch {
-      return null;
-    }
-  },
-};
+  } 
+}
