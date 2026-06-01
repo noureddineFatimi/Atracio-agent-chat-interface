@@ -21,9 +21,10 @@ interface Props {
   streamingMessage: ChatMessage | null;
   busy: boolean;
   onSend: (text: string) => void;
-  onClear: () => void;
+  onClear: (conversationId: string) => Promise<void>;
   onRetry: (id: string) => void;
   loadingAssistantMessage: boolean;
+  activeId: string;
 }
 /* const generateConversationsList = (
     conversationResponse: ConversationResponse
@@ -80,7 +81,8 @@ export function ChatPanel({
   onSend,
   onClear,
   onRetry,
-  loadingAssistantMessage
+  loadingAssistantMessage,
+  activeId
 }: Props) {
   const [input, setInput] = useState("");
   const theme = useTheme();
@@ -154,9 +156,9 @@ export function ChatPanel({
             />
             <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
               {messages.length > 0 && (
-                <Tooltip title="Clear conversation">
+                <Tooltip title="Delete conversation">
                   <span>
-                    <IconButton onClick={onClear} disabled={busy} size="small">
+                    <IconButton onClick={() => onClear(activeId)} disabled={busy} size="small">
                       <DeleteOutlineIcon fontSize="small" />
                     </IconButton>
                   </span>

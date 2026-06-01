@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { Box, CircularProgress } from "@mui/material";
+import { Box, CircularProgress, Snackbar } from "@mui/material";
 import { Sidebar } from "@/components/Sidebar";
 import { Header } from "@/components/Header";
 import { ChatPanel } from "@/components/ChatPanel";
@@ -30,6 +30,10 @@ export function ChatPage() {
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadingAssistantMessage, setLoadingAssistantMessage] = useState(false);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+  });
 
   const active = useMemo<Conversation | undefined>(
       () => conversations.find((c) => c.id === activeId) ?? conversations[0],
@@ -40,8 +44,7 @@ export function ChatPage() {
     if (localStorage.getItem("access.token")==null) navigate({ to: "/login" });
   }, []);
 
- useEffect(() => {
-    const load = async () => {
+  const loadConversations = async () => {
       try {
         const data: ConversationResponse = await agentClient.getConversationHistory();
         const parsed = mapConversationHistory(data);
@@ -65,7 +68,9 @@ export function ChatPage() {
         setLoading(false);
       }
     };
-    load();
+  
+ useEffect(() => {
+    loadConversations();
   }, []);
 
   const updateActive = (fn: (c: Conversation) => Conversation) => {
@@ -126,8 +131,22 @@ export function ChatPage() {
     setActiveId(c.id);
   };
 
-  const handleClear = () => {
-    updateActive((c) => ({ ...c, messages: [], title: "New conversation" }));
+  const handleClear = async (conversationId: string) :Promise<void> => {
+    try { 
+      const result = await agentClient.clearConversationHistory(conversationId);
+      if (result?.success) {
+        loadConversations();
+        setSnackbar({
+          open: true,
+          message: "Conversation deleted",
+        });
+        }
+    } catch (error) {
+      setSnackbar({
+        open: true,
+        message: "Error during deleting the conversation",
+      });
+    }
   };
 
   const handleRetry = (_id: string) => {
@@ -161,6 +180,7 @@ export function ChatPage() {
   }
 
   return (
+    <>
     <Box sx={{ display: "flex", height: "100dvh", bgcolor: "background.default" }}>
       <Sidebar
         conversations={conversations}
@@ -182,9 +202,22 @@ export function ChatPage() {
           onClear={handleClear}
           onRetry={handleRetry}
           loadingAssistantMessage={loadingAssistantMessage}
+          activeId={activeId}
         />
       </Box>
       
     </Box>
+    <Snackbar
+      open={snackbar.open}
+      autoHideDuration={3000}
+      message={snackbar.message}
+      onClose={() =>
+        setSnackbar((prev) => ({
+          ...prev,
+          open: false,
+        }))
+      }
+    />
+  </>
   );
 }
