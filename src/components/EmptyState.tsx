@@ -27,6 +27,7 @@ export function EmptyState({ onPick }: Props) {
         justifyContent: "center",
         textAlign: "center",
         px: 3,
+        margin: "auto"
       }}
     >
       <Box

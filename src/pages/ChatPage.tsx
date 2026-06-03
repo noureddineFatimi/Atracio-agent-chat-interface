@@ -8,7 +8,7 @@ import { atracioAuthClient } from "@/services/atracioAuthClient";
 import { agentClient } from "@/services/agentClient";
 import type { ChatMessage, ChatMessageResponse, ChatResponse, Conversation, ConversationResponse, MessageRole } from "@/types/chat";
 import type { AuthSession } from "@/types/auth";
-import { ChatError, UnauthorizedError } from "@/services/exceptions";
+import { ChatError, ShouldLoginError, UnauthorizedError } from "@/services/exceptions";
 import { v4 as uuidv4 } from 'uuid';
 import { mapConversationHistory } from "@/lib/utils";
 
@@ -118,6 +118,10 @@ export function ChatPage() {
       ...c,
         messages: [...c.messages, assistantMsg],
       }));
+      }
+      if (error instanceof ShouldLoginError) {
+        navigate({ to: "/login" });
+        return;
       }
    } finally {
     setBusy(false);

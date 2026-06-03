@@ -39,4 +39,5 @@ export interface ChatResponse {
   assistantMessage: string;
   conversationId: string;
   toolCalls: ToolCall[] | null;
+  requiresTokenRefresh: boolean;
 }
