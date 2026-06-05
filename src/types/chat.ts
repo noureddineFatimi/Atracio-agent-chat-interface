@@ -11,6 +11,7 @@ export interface ChatMessage {
   id: string;
   role: MessageRole;
   content: string;
+  toolCalls: ToolCall[] | null;
   loading?: boolean;
 }
 

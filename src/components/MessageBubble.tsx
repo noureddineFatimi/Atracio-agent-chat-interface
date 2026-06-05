@@ -1,13 +1,17 @@
 import { useState } from "react";
-import { Avatar, Box, CircularProgress, IconButton, Stack, Tooltip, Typography, alpha, useTheme } from "@mui/material";
+import { Accordion, AccordionDetails, AccordionSummary, Avatar, Box, CircularProgress, IconButton, Stack, Tooltip, Typography, alpha, useTheme } from "@mui/material";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import RefreshIcon from "@mui/icons-material/Refresh";
-import CheckIcon from "@mui/icons-material/Check";
 import PersonIcon from "@mui/icons-material/Person";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import type { ChatMessage } from "@/types/chat";
 import { ThinkingBlock } from "./ThinkingBlock";
-
+import PsychologyIcon from '@mui/icons-material/Psychology';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import CheckIcon from '@mui/icons-material/Check';
+import DangerousIcon from '@mui/icons-material/Dangerous';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 interface Props {
   message: ChatMessage;
   thinkingActive?: boolean;
@@ -55,76 +59,163 @@ export function MessageBubble({ message, thinkingActive, onRetry, loadingAssista
 
   return (
     <Stack
-      direction="row"
-      spacing={2}
+    direction="row"
+    spacing={2}
+    sx={{
+      alignItems: "flex-start",
+      flexDirection: isUser ? "row-reverse" : "row",
+      animation: "fadeIn 0.35s ease",
+      "@keyframes fadeIn": {
+        from: { opacity: 0, transform: "translateY(6px)" },
+        to: { opacity: 1, transform: "translateY(0)" },
+      },
+    }}
+  >
+    <Avatar
       sx={{
-        alignItems: "flex-start",
-        flexDirection: isUser ? "row-reverse" : "row",
-        
-        animation: "fadeIn 0.35s ease",
-        "@keyframes fadeIn": {
-          from: { opacity: 0, transform: "translateY(6px)" },
-          to: { opacity: 1, transform: "translateY(0)" },
-        },
+        width: 32,
+        height: 32,
+        bgcolor: isUser
+          ? "primary.main"
+          : alpha(theme.palette.secondary.main, 0.15),
+        color: isUser
+          ? "primary.contrastText"
+          : "secondary.main",
       }}
     >
-      <Avatar
-        sx={{
-          width: 32,
-          height: 32,
-          bgcolor: isUser ? "primary.main" : alpha(theme.palette.secondary.main, 0.15),
-          color: isUser ? "primary.contrastText" : "secondary.main",
-        }}
-      >
-        {isUser ? <PersonIcon fontSize="small" /> : <AutoAwesomeIcon fontSize="small" />}
-      </Avatar>
-      <Box sx={{ maxWidth: "min(760px, calc(100% - 60px))" }}>
-       
-          
-        {message.content && (
-          <Box
-            sx={{
-              marginRight:"16px",
-              display: "inline-block",
-              maxWidth: "100%",
-              px: 2,
-              py: 1.5,
-              borderRadius: 2,
-              bgcolor: isUser ? "primary.main" : "background.paper",
-              color: isUser ? "primary.contrastText" : "text.primary",
-              border: isUser ? "none" : `1px solid ${theme.palette.divider}`,
-              boxShadow: isUser ? "none" : "0 1px 2px rgba(0,0,0,0.04)",
-            }}
-          >
-             { renderContent(message.content)}
-          </Box>
-        )}
-        <Stack
-          direction="row"
-          spacing={0.5}
+      {isUser ? (
+        <PersonIcon fontSize="small" />
+      ) : (
+        <AutoAwesomeIcon fontSize="small" />
+      )}
+    </Avatar>
+
+    <Box sx={{ maxWidth: "min(760px, calc(100% - 60px))" }}>
+      {/* Message */}
+      {message.content && (
+        <Box
           sx={{
-            alignItems: "center",
-            mt: 0.75,
-            justifyContent: isUser ? "flex-end" : "flex-start",
+            marginRight: "16px",
+            display: "inline-block",
+            maxWidth: "100%",
+            px: 2,
+            py: 1.5,
+            borderRadius: 2,
+            bgcolor: isUser ? "primary.main" : "background.paper",
+            color: isUser
+              ? "primary.contrastText"
+              : "text.primary",
+            border: isUser
+              ? "none"
+              : `1px solid ${theme.palette.divider}`,
+            boxShadow: isUser
+              ? "none"
+              : "0 1px 2px rgba(0,0,0,0.04)",
           }}
         >
-          
-          {!isUser && message.content && (
-            <>
-              <Tooltip title={copied ? "Copied" : "Copy"}>
-                <IconButton size="small" onClick={copy}>
-                  {copied ? (
-                    <CheckIcon sx={{ fontSize: 14 }} />
-                  ) : (
-                    <ContentCopyIcon sx={{ fontSize: 14 }} />
-                  )}
-                </IconButton>
-              </Tooltip>
-              
-            </>
-          )}
+          {renderContent(message.content)}
+        </Box>
+      )}
+
+      {/* Raisonnement */}
+      {!isUser &&
+        message.content &&
+        message.toolCalls != null && (
+          <Box sx={{ mt: 1 }}>
+            <Accordion
+              sx={{
+                boxShadow: "none",
+                backgroundColor: "transparent",
+                "&:before": { display: "none" },
+              }}
+            >
+              <AccordionSummary
+                expandIcon={<KeyboardArrowDownIcon />}
+                sx={{
+                  minHeight: 0,
+                  p: 0,
+                  "&.Mui-expanded": {
+                    minHeight: 0,
+                  },
+                  "& .MuiAccordionSummary-content": {
+                    flexGrow: 0,
+                    margin: 0,
+                  },
+                  "& .MuiAccordionSummary-content.Mui-expanded": {
+                    margin: 0,
+                  },
+                }}
+              >
+                <Typography>Raisonnement</Typography>
+              </AccordionSummary>
+
+              <AccordionDetails
+                sx={{
+                  borderLeft: "2px solid",
+                  borderColor: "divider",
+                  ml: 1,
+                  pl: 2,
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "4px",
+                  }}
+                >
+                  {message.toolCalls.map((tool, index) => (
+                    <div
+                      key={index}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                      }}
+                    >
+                      <span>{tool.tool}</span>
+
+                      {tool.status === "success" ? (
+                        <CheckIcon
+                          color="success"
+                          fontSize="small"
+                        />
+                      ) : (
+                        <DangerousIcon
+                          color="error"
+                          fontSize="small"
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </AccordionDetails>
+            </Accordion>
+          </Box>
+        )}
+
+      {/* Actions */}
+      {!isUser && message.content && (
+        <Stack
+          direction="row"
+          spacing={1}
+          sx={{
+            mt: 0.5,
+            justifyContent: "flex-start",
+          }}
+        >
+          <Tooltip title={copied ? "Copied" : "Copy"}>
+            <IconButton size="small" onClick={copy}>
+              {copied ? (
+                <CheckIcon sx={{ fontSize: 14 }} />
+              ) : (
+                <ContentCopyIcon sx={{ fontSize: 14 }} />
+              )}
+            </IconButton>
+          </Tooltip>
         </Stack>
-      </Box>
-    </Stack>
+      )}
+    </Box>
+  </Stack>
   );
 }

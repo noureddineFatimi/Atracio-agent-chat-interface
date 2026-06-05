@@ -85,6 +85,7 @@ export function ChatPage() {
       id: `u-${uuidv4()}`,
       role: "user",
       content: text,
+      toolCalls: null
     };
     updateActive((c) => ({
       ...c,
@@ -99,6 +100,7 @@ export function ChatPage() {
         id: `a-${uuidv4()}`,
         role: "assistant",
         content: response.assistantMessage,
+        toolCalls: response.toolCalls
       };
       updateActive((c) => ({
       ...c,
@@ -113,6 +115,7 @@ export function ChatPage() {
           error instanceof ChatError
             ? error.message
             : "An unexpected error occurred.",
+        toolCalls: null
       };
         updateActive((c) => ({
       ...c,
