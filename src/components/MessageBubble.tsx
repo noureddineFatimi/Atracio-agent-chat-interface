@@ -46,6 +46,27 @@ function renderContent(text: string) {
   });
 }
 
+function translateToolNameToBusiness(tool: string) {
+  switch (tool) {   
+    case "document.search":
+      return "Recherche documentaire";
+    case "document.get_details":
+      return "Détails du document";
+    case "document.save_draft":
+      return "Enregistrer le brouillon";
+    case "document.apply_process_action":
+      return "Appliquer une action sur le processus";
+    case "wms.get_article_stock_summary":
+      return "Résumé du stock d'article";
+    case "wms.lookup_inventory_unit":
+      return "Rechercher une unité d'inventaire";
+    case "partner.get_summary":
+      return "Résumé du partenaire";
+    default:
+      return tool;
+  }
+}
+
 export function MessageBubble({ message, thinkingActive, onRetry, loadingAssistantMessage }: Props) {
   const theme = useTheme();
   const [copied, setCopied] = useState(false);
@@ -173,7 +194,7 @@ export function MessageBubble({ message, thinkingActive, onRetry, loadingAssista
                         gap: "6px",
                       }}
                     >
-                      <span>{tool.tool}</span>
+                      <span>{translateToolNameToBusiness(tool.tool)}</span>
 
                       {tool.status === "success" ? (
                         <CheckIcon
