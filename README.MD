@@ -134,6 +134,14 @@ Provides:
 * Conversation management
 * Communication with the AI Agent APIs
 
+![description](1.png)
+
+![description](2.png)
+
+![description](3.png)
+
+![description](4.png)
+
 ---
 
 # Features
