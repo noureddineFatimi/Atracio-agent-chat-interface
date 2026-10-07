@@ -216,7 +216,7 @@ Authentication endpoint provided by the Atracio platform.
 Example:
 
 ```text
-https://demo.prod.atracio.com/api/login
+https://url.com/api/login
 ```
 
 ## Atracio AI Agent

@@ -9,7 +9,7 @@ export default defineConfig({
     server: {
       proxy: {
         "/api": {
-          target: "https://demo.prod.atracio.com",
+          target: "https://url.com",
           changeOrigin: true,
           secure: true,
         },
